@@ -1,18 +1,32 @@
+import os
 from pathlib import Path
 import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+def env_bool(name, default):
+    return os.environ.get(name, str(default)).strip().lower() in ('1', 'true', 'yes', 'on')
+
+
+def env_list(name, default):
+    value = os.environ.get(name)
+    if not value:
+        return default
+    return [item.strip() for item in value.split(',') if item.strip()]
+
+
 # ─── Security ──────────────────────────────────────────────────────────────────
-SECRET_KEY = 'django-insecure-in16-study-manager-secret-key-change-in-production'
+SECRET_KEY = os.environ.get(
+    'SECRET_KEY',
+    'django-insecure-in16-study-manager-secret-key-change-in-production',
+)
 
-DEBUG = False
+DEBUG = env_bool('DEBUG', False)
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = env_list('ALLOWED_HOSTS', ['*'])
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://*.vercel.app',
-]
+CSRF_TRUSTED_ORIGINS = env_list('CSRF_TRUSTED_ORIGINS', ['https://*.vercel.app'])
 
 # ─── Apps ──────────────────────────────────────────────────────────────────────
 INSTALLED_APPS = [
@@ -92,7 +106,7 @@ LOGOUT_REDIRECT_URL   = '/login/'
 
 # ─── Vercel HTTPS proxy ──────────────────────────────────────────────────────────
 SECURE_PROXY_SSL_HEADER        = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT            = True
+SECURE_SSL_REDIRECT            = env_bool('SECURE_SSL_REDIRECT', True)
 SECURE_HSTS_SECONDS            = 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD            = True
