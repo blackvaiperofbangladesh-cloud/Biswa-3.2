@@ -24,15 +24,35 @@ Login · Notes · Units · Groups · Class List · Announcements · Reminders ·
 
 ### 1. Push to GitHub
 
+Repository: **[github.com/blackvaiperofbangladesh-cloud/Biswa-3.2](https://github.com/blackvaiperofbangladesh-cloud/Biswa-3.2)**
+
 ```bash
-cd biswa_deploy
+cd Biswa-3.2
 git init
 git add .
 git commit -m "Initial commit"
 git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/biswa-class-manager.git
+git remote add origin https://github.com/blackvaiperofbangladesh-cloud/Biswa-3.2.git
 git push -u origin main
 ```
+
+### Reconnect GitHub
+
+If the remote is missing or points to the wrong repository, reconnect it:
+
+```bash
+git remote set-url origin https://github.com/blackvaiperofbangladesh-cloud/Biswa-3.2.git
+# or, if no remote exists yet:
+git remote add origin https://github.com/blackvaiperofbangladesh-cloud/Biswa-3.2.git
+git remote -v
+git push -u origin main
+```
+
+To reconnect the Vercel project to GitHub, open
+[Vercel → Project → Settings → Git](https://vercel.com/kristiva-e-commerce-platform/biswa-3-2/settings/git)
+and connect **blackvaiperofbangladesh-cloud/Biswa-3.2**.
+To re-authorize GitHub access for Vercel, use
+[GitHub → Settings → Applications](https://github.com/settings/installations).
 
 ### 2. Import to Vercel
 
@@ -83,8 +103,8 @@ python manage.py seed
 
 ```bash
 # 1. Clone and enter project
-git clone https://github.com/YOUR_USERNAME/biswa-class-manager.git
-cd biswa-class-manager
+git clone https://github.com/blackvaiperofbangladesh-cloud/Biswa-3.2.git
+cd Biswa-3.2
 
 # 2. Create virtual environment
 python -m venv venv
@@ -116,7 +136,7 @@ Visit: **http://127.0.0.1:8000/**
 ## 🗂️ Project Structure
 
 ```
-biswa_deploy/
+Biswa-3.2/
 ├── api/
 │   └── index.py              ← Vercel serverless entry point
 ├── vercel.json               ← Vercel build + routing config
