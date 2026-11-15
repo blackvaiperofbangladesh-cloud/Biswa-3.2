@@ -224,7 +224,11 @@ restoring a snapshot can lose subsequent writes and needs maintenance coordinati
 - Production logs contained the reported missing `notes_app_student` relation.
 - The pre-fix implementation reproduced an orphan User after profile failure and
   accepted a duplicate registration number in isolated local SQLite.
-- Vercel listed no project environment variables at audit time.
+- Initial audit found no project environment variables. Preview branch
+  `repair/registration-security` now has a fresh write-only `SECRET_KEY`, `DEBUG`,
+  `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`. `DATABASE_URL` remains unset pending
+  owner-verified rotated credentials and an isolated Preview database. Production
+  environment variables were not changed.
 - Production database identity/ownership, backups, schema and migrations were **not**
   verified or changed. No claim is made that live registration/login is repaired.
 - Python 3.12.16 / Django 5.2.19: **18 tests passed**; `check`, production-mode

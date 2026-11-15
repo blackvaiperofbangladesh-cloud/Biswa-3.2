@@ -56,7 +56,7 @@ class Command(BaseCommand):
                 except Student.DoesNotExist:
                     pass
         self.stdout.write(self.style.SUCCESS(
-            f'✓ {len(student_objects)} students (password: pass1234)'
+            f'✓ {len(student_objects)} demo students (login disabled)'
         ))
 
         # Notes

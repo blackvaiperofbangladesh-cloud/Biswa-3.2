@@ -1,5 +1,6 @@
 """Synthetic accounts only; Django creates and destroys a separate test database."""
 import os
+from io import StringIO
 import secrets
 import subprocess
 import sys
@@ -156,7 +157,9 @@ class RegistrationTests(TestCase):
 
     @override_settings(DEBUG=True)
     def test_local_seed_has_no_usable_passwords_or_admin(self):
-        call_command('seed', verbosity=0)
+        output = StringIO()
+        call_command('seed', verbosity=0, stdout=output)
+        self.assertNotIn('password:', output.getvalue().lower())
         self.assertFalse(User.objects.filter(is_superuser=True).exists())
         self.assertEqual(Student.objects.count(), 2)
         self.assertTrue(all(not user.has_usable_password() for user in User.objects.all()))
