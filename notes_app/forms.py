@@ -1,4 +1,5 @@
 from django import forms
+from django.db import transaction
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from .models import Student, Reminder
@@ -15,6 +16,13 @@ class RegisterForm(UserCreationForm):
         model = User
         fields = ['username', 'first_name', 'last_name', 'email', 'password1', 'password2']
 
+    def clean_reg_number(self):
+        value = self.cleaned_data['reg_number'].strip().upper()
+        if Student.objects.filter(reg_number__iexact=value).exists():
+            raise forms.ValidationError('This registration number is already registered.')
+        return value
+
+    @transaction.atomic
     def save(self, commit=True):
         user = super().save(commit=False)
         user.first_name = self.cleaned_data['first_name']

@@ -2,9 +2,10 @@
 Management command to seed the database with sample data.
 Usage:
   python manage.py seed
-  python manage.py seed --clear   (wipe and re-seed)
 """
-from django.core.management.base import BaseCommand
+from django.conf import settings
+from django.db import connection, transaction
+from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth.models import User
 from notes_app.models import Unit, Student, Note, Group, Announcement
 
@@ -12,21 +13,10 @@ from notes_app.models import Unit, Student, Note, Group, Announcement
 class Command(BaseCommand):
     help = 'Seed the database with initial IN16 class data'
 
-    def add_arguments(self, parser):
-        parser.add_argument(
-            '--clear', action='store_true',
-            help='Clear existing data before seeding'
-        )
-
+    @transaction.atomic
     def handle(self, *args, **options):
-        if options['clear']:
-            self.stdout.write('Clearing existing data...')
-            Announcement.objects.all().delete()
-            Group.objects.all().delete()
-            Note.objects.all().delete()
-            Student.objects.all().delete()
-            User.objects.filter(is_superuser=False).delete()
-            Unit.objects.all().delete()
+        if not settings.DEBUG or connection.vendor != 'sqlite':
+            raise CommandError('Seeding is restricted to local DEBUG SQLite databases.')
 
         # Units
         units_data = [
@@ -43,22 +33,17 @@ class Command(BaseCommand):
             units.append(unit)
         self.stdout.write(self.style.SUCCESS(f'✓ {len(units)} units'))
 
-        # Superuser
-        if not User.objects.filter(username='admin').exists():
-            User.objects.create_superuser('admin', 'admin@in16.ac.ke', 'admin123')
-            self.stdout.write(self.style.SUCCESS('✓ Superuser: admin / admin123'))
-
         # Students
         students_data = [
-            ('IN16/00034/25', 'Kevin',   'Kiptoo',    'M'),
-            ('IN16/00031/25', 'Lynette', 'Chepkemoi', 'F'),
+            ('DEMO-001', 'Demo', 'One', 'O'),
+            ('DEMO-002', 'Demo', 'Two', 'O'),
         ]
         student_objects = []
         for reg, first, last, gender in students_data:
             username = first.lower() + last.lower()
             if not User.objects.filter(username=username).exists():
                 user = User.objects.create_user(
-                    username, f'{first.lower()}@in16.ac.ke', 'pass1234',
+                    username, f'{username}@example.invalid', password=None,
                     first_name=first, last_name=last
                 )
                 student = Student.objects.create(
@@ -71,7 +56,7 @@ class Command(BaseCommand):
                 except Student.DoesNotExist:
                     pass
         self.stdout.write(self.style.SUCCESS(
-            f'✓ {len(student_objects)} students (password: pass1234)'
+            f'✓ {len(student_objects)} demo students (login disabled)'
         ))
 
         # Notes
@@ -118,9 +103,4 @@ class Command(BaseCommand):
             )
         self.stdout.write(self.style.SUCCESS(f'✓ {len(ann_data)} announcements'))
 
-        self.stdout.write(self.style.SUCCESS(
-            '\nDatabase seeded! Login credentials:\n'
-            '  Admin    : admin / admin123\n'
-            '  Student  : kevinkiptoo / pass1234\n'
-            '  Student  : lynettechepkemoi / pass1234'
-        ))
+        self.stdout.write(self.style.SUCCESS('Demo data seeded. No usable passwords or administrator created.'))

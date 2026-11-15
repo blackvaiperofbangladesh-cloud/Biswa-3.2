@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Vercel runs this script automatically during the build phase.
+# Optional manual static build. Native Vercel Django builds collect static assets automatically.
 # It generates the staticfiles/ directory so WhiteNoise can serve them at runtime.
 
 set -e

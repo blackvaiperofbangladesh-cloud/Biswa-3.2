@@ -1,3 +1,6 @@
+import logging
+from django.db import DatabaseError, IntegrityError
+from django.views.decorators.http import require_POST
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
@@ -6,6 +9,8 @@ from django.contrib import messages
 from django.utils import timezone
 from .models import Unit, Student, Note, Group, Announcement, Reminder
 from .forms import RegisterForm, ReminderForm
+
+logger = logging.getLogger(__name__)
 
 
 def login_view(request):
@@ -27,18 +32,28 @@ def login_view(request):
 def register_view(request):
     if request.user.is_authenticated:
         return redirect('home')
+    status = 200
     if request.method == 'POST':
         form = RegisterForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, f'Welcome to IN16 Study Manager, {user.first_name}!')
-            return redirect('home')
+        try:
+            if form.is_valid():
+                user = form.save()
+                login(request, user)
+                messages.success(request, f'Welcome to IN16 Study Manager, {user.first_name}!')
+                return redirect('home')
+        except IntegrityError:
+            # The atomic save has already rolled back, including concurrent duplicates.
+            form.add_error(None, 'That username or registration number is unavailable. Please try again.')
+        except DatabaseError:
+            logger.error('Registration database operation failed; verify database availability and migrations.')
+            form.add_error(None, 'Registration is temporarily unavailable. Please try again later.')
+            status = 503
     else:
         form = RegisterForm()
-    return render(request, 'notes_app/register.html', {'form': form})
+    return render(request, 'notes_app/register.html', {'form': form}, status=status)
 
 
+@require_POST
 def logout_view(request):
     logout(request)
     return redirect('login')
@@ -172,6 +187,7 @@ def reminders_view(request):
 
 
 @login_required
+@require_POST
 def mark_reminder_done(request, reminder_id):
     try:
         student = request.user.student
